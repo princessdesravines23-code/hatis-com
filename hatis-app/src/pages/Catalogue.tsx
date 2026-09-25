@@ -2,6 +2,9 @@ import { useState } from "react";
 import Nav from "../components/Nav";
 import CategoryChips from "../components/CategoryChips";
 import CreatorCard from "../components/CreatorCard";
+import HowItWorks from "../components/HowItWorks";
+import Faq from "../components/Faq";
+import ClaimFooter from "../components/ClaimFooter";
 import { creators } from "../data/creators";
 
 export default function Catalogue() {
@@ -23,11 +26,15 @@ export default function Catalogue() {
 
       <CategoryChips active={active} onChange={setActive} />
 
-      <div className="max-w-[1100px] mx-auto px-6 mt-8 mb-20 grid gap-4 grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
+      <div className="max-w-[1100px] mx-auto px-6 mt-8 mb-4 grid gap-4 grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
         {list.map((c) => (
           <CreatorCard key={c.slug} creator={c} newTab />
         ))}
       </div>
+
+      <HowItWorks />
+      <Faq />
+      <ClaimFooter />
     </>
   );
 }
