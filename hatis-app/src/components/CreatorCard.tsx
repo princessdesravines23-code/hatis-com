@@ -3,7 +3,6 @@ import type { Creator } from "../types/creator";
 
 interface Props {
   creator: Creator;
-  /** Open the profile in a new tab instead of navigating in place. */
   newTab?: boolean;
 }
 
@@ -24,7 +23,9 @@ export default function CreatorCard({ creator, newTab }: Props) {
       <div className="text-base font-bold mb-0.5">{creator.name}</div>
       <div className="text-[12.5px] text-ink-soft font-medium">{creator.cats.join(" · ")}</div>
       <div className="mt-3 text-[12.5px] text-ink-soft flex items-center gap-[5px]">
-        <span className="w-1.5 h-1.5 rounded-full bg-red" />
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#F2B134">
+          <path d="M12 21s-6.7-4.35-9.3-8.1C1 10.1 1.6 6.6 4.6 5.1c2.2-1.1 4.6-.3 6 1.5.4.5.7 1 1 .6.3-.6.6-1.1 1-1.6 1.4-1.8 3.8-2.6 6-1.5 3 1.5 3.6 5 1.9 7.8C18.7 16.65 12 21 12 21z" />
+        </svg>
         {creator.supporters} supporters
       </div>
     </Link>

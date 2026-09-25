@@ -6,9 +6,12 @@ export default function Nav() {
       <Link to="/" className="text-[22px] font-display font-extrabold">
         Hat<span className="text-red">is</span>
       </Link>
-      <button className="bg-indigo text-canvas px-5 py-2.5 rounded-pill text-sm font-semibold">
+      <Link
+        to="/become-creator"
+        className="bg-indigo text-canvas px-5 py-2.5 rounded-pill text-sm font-semibold"
+      >
         Become a creator
-      </button>
+      </Link>
     </nav>
   );
 }

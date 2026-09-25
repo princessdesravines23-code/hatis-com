@@ -18,7 +18,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="max-w-[1100px] mx-auto px-6 py-20">
+    <section id="how-it-works" className="max-w-[1100px] mx-auto px-6 py-20">
       <h2 className="text-[clamp(28px,4vw,40px)] max-w-[16ch]">
         Get paid your way, without us in the middle.
       </h2>
