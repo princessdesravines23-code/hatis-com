@@ -19,6 +19,12 @@ export const creators: Creator[] = [
       { name: "Studio Pass", price: "$8/mo", desc: "Everything above, plus behind-the-scenes studio sessions and stems." },
       { name: "Producer Circle", price: "$20/mo", desc: "Direct feedback line — send me your own beats once a month for notes." },
     ],
+    feed: [
+      { name: "M.", action: "sent support" },
+      { name: "Anonymous", action: "joined Studio Pass" },
+      { name: "J. Registre", action: "sent support" },
+      { name: "Anonymous", action: "joined Tanbou Club" },
+    ],
   },
   {
     slug: "peterson-auguste",
@@ -33,6 +39,13 @@ export const creators: Creator[] = [
     tiers: [
       { name: "Fanmi", price: "$2/mo", desc: "Shoutout in the next live stream and access to the supporters-only chat." },
       { name: "VIP Ri", price: "$6/mo", desc: "Vote on next week's sketch topic and get early cuts before they post." },
+    ],
+    feed: [
+      { name: "Naomi", action: "joined VIP Ri" },
+      { name: "Anonymous", action: "sent support" },
+      { name: "K. Bien-Aimé", action: "sent support" },
+      { name: "Anonymous", action: "joined Fanmi" },
+      { name: "T.", action: "sent support" },
     ],
   },
   {
@@ -49,6 +62,11 @@ export const creators: Creator[] = [
       { name: "Kolektè", price: "$5/mo", desc: "First look at new pieces, plus a monthly wallpaper drop." },
       { name: "Patwon", price: "$15/mo", desc: "A signed print mailed to you twice a year, plus your name in the credits." },
     ],
+    feed: [
+      { name: "Anonymous", action: "joined Kolektè" },
+      { name: "R. Joseph", action: "sent support" },
+      { name: "Anonymous", action: "sent support" },
+    ],
   },
   {
     slug: "ruben-etienne",
@@ -63,6 +81,10 @@ export const creators: Creator[] = [
     tiers: [
       { name: "Sipòtè", price: "$4/mo", desc: "Name listed as a sponsor on every repo README." },
       { name: "Kontribitè", price: "$12/mo", desc: "Priority on feature requests and a monthly dev-log email." },
+    ],
+    feed: [
+      { name: "Anonymous", action: "joined Sipòtè" },
+      { name: "D. Charles", action: "sent support" },
     ],
   },
 ];

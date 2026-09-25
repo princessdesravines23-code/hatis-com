@@ -1,3 +1,8 @@
+export interface FeedItem {
+  name: string;
+  action: string;
+}
+
 export interface Tier {
   name: string;
   price: string;
@@ -15,4 +20,5 @@ export interface Creator {
   bio: string;
   socials: string[];
   tiers: Tier[];
+  feed: FeedItem[];
 }
