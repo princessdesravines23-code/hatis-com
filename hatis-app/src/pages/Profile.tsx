@@ -34,25 +34,23 @@ export default function Profile() {
         </Link>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 mt-3.5">
-        <div
-          className="h-40 rounded-[22px] relative overflow-hidden"
-          style={{ background: `linear-gradient(120deg, ${creator.c1} 0%, ${creator.c2} 100%)` }}
-        />
-      </div>
-
-      <div className="max-w-[1100px] mx-auto px-6 flex items-end gap-4 -mt-[38px]">
-        <div
-          className="w-[88px] h-[88px] rounded-[20px] border-4 border-canvas flex items-center justify-center font-display font-bold text-3xl text-canvas"
-          style={{ background: `linear-gradient(135deg, ${creator.c1}, ${creator.c2})` }}
-        >
-          {creator.initials}
-        </div>
-        <div className="pb-1.5 flex-1">
-          <h2 className="text-2xl">{creator.name}</h2>
-          <div className="text-[13px] text-ink-soft mt-1">
-            {creator.cats.join(" · ")} · {creator.supporters} supporters
+      <div className="max-w-[1100px] mx-auto px-6 flex flex-col sm:flex-row sm:items-end gap-4 mt-6">
+        <div className="flex items-center gap-5 -mt-16 sm:-mt-10">
+          <div
+            className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg flex items-center justify-center font-display font-bold text-3xl text-canvas flex-none"
+            style={{ background: `linear-gradient(135deg, ${creator.c1}, ${creator.c2})` }}
+          >
+            {creator.initials}
           </div>
+          <div>
+            <h2 className="text-2xl">{creator.name}</h2>
+            <div className="text-[13px] text-ink-soft mt-1">
+              {creator.cats.join(" · ")} · {creator.supporters} supporters
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 sm:ml-auto">
+          <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">
         </div>
         <div className="pb-1.5 flex gap-2">
           <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">

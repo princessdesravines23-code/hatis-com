@@ -1,49 +1,117 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Nav from "../components/Nav";
 
 export default function BecomeCreator() {
-  const [username, setUsername] = useState("");
+  const [form, setForm] = useState({ name: "", username: "", email: "", password: "" });
+  const [agreed, setAgreed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const update = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
 
   return (
     <>
       <Nav />
-      <div className="max-w-[560px] mx-auto px-6 py-20 text-center">
-        <h1 className="text-[clamp(30px,5vw,44px)] leading-[1.05]">
-          Claim your page before someone else does.
-        </h1>
-        <p className="mt-4 text-[16px] text-ink-soft leading-relaxed">
-          Signup isn't open yet — we're onboarding creators by hand while we finish the payment
-          setup. Drop your name below and we'll reach out when it's your turn.
-        </p>
+      <div className="max-w-[440px] mx-auto px-6 py-16">
+        <div className="text-center mb-8">
+          <h1 className="text-[clamp(26px,4vw,32px)]">Create your Hatis page</h1>
+          <p className="mt-2.5 text-[14.5px] text-ink-soft leading-relaxed">
+            Set up your profile in a couple minutes — you can add payment methods and tiers
+            once you're in.
+          </p>
+        </div>
 
         {submitted ? (
-          <p className="mt-8 text-[15px] font-semibold text-teal">
-            Got it — we'll be in touch soon.
-          </p>
+          <div className="bg-canvas-2 border border-border rounded-card p-6 text-center">
+            <p className="text-[15px] font-semibold text-teal mb-1.5">Account created.</p>
+            <p className="text-[13.5px] text-ink-soft">
+              Welcome to Hatis, {form.name || "there"} — your page will live at{" "}
+              <span className="font-semibold text-ink">hatis.app/{form.username || "yourname"}</span>.
+            </p>
+          </div>
         ) : (
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              setSubmitted(true);
+              if (agreed) setSubmitted(true);
             }}
-            className="mt-8 flex rounded-pill bg-canvas-2 border border-border overflow-hidden max-w-[420px] mx-auto"
+            className="flex flex-col gap-3.5"
           >
-            <span className="pl-5 py-3.5 text-[14px] text-ink-soft flex items-center">
-              hatis.app/
-            </span>
             <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="yourname"
+              value={form.name}
+              onChange={update("name")}
+              placeholder="Display name"
               required
-              className="flex-1 bg-transparent outline-none text-ink text-[14px] py-3.5 pr-2"
+              className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
             />
-            <button className="bg-red text-white px-5 font-bold text-[14px] flex-none">
-              Notify me
+
+            <div className="w-full flex bg-canvas-2 border border-border rounded-[12px] overflow-hidden focus-within:border-ink">
+              <span className="pl-4 py-3.5 text-[14px] text-ink-soft flex items-center">
+                hatis.app/
+              </span>
+              <input
+                value={form.username}
+                onChange={update("username")}
+                placeholder="yourname"
+                required
+                className="flex-1 bg-transparent outline-none text-[14px] py-3.5 pr-4"
+              />
+            </div>
+
+            <input
+              value={form.email}
+              onChange={update("email")}
+              type="email"
+              placeholder="Email address"
+              required
+              className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
+            />
+
+            <input
+              value={form.password}
+              onChange={update("password")}
+              type="password"
+              placeholder="Choose a password"
+              required
+              minLength={8}
+              className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
+            />
+
+            <label className="flex items-start gap-2.5 mt-1 text-[13px] text-ink-soft leading-snug cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 accent-ink"
+              />
+              <span>
+                I accept the{" "}
+                <Link to="/terms" className="text-ink font-semibold underline">
+                  terms
+                </Link>{" "}
+                and have read the{" "}
+                <Link to="/privacy" className="text-ink font-semibold underline">
+                  privacy policy
+                </Link>
+                .
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={!agreed}
+              className="w-full py-3.5 rounded-[12px] bg-red text-white text-[14.5px] font-bold mt-1 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Create my account
             </button>
           </form>
         )}
+
+        <p className="text-center text-[13.5px] text-ink-soft mt-6">
+          Already have a page?{" "}
+          <span className="text-ink font-semibold">Log in — coming soon</span>
+        </p>
       </div>
     </>
   );

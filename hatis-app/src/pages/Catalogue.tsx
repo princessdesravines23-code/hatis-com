@@ -16,7 +16,7 @@ export default function Catalogue() {
       <Nav />
       <div className="max-w-[1100px] mx-auto px-6 pt-10 pb-2">
         <h1 className="text-[clamp(34px,5.5vw,58px)] leading-[1.02] max-w-[11ch]">
-          Support the artists building Haitian cultureaaaaaa.
+          Support the artists building Haitian culture.
         </h1>
         <p className="mt-3.5 text-[17px] text-ink-soft max-w-[42ch] leading-relaxed">
           Musicians, comedians, developers, and creators — one place for the diaspora and the
