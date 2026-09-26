@@ -34,6 +34,13 @@ export default function Profile() {
         </Link>
       </div>
 
+      <div className="max-w-[1100px] mx-auto px-6 mt-4">
+        <div
+          className="h-44 rounded-[22px] relative overflow-hidden"
+          style={{ background: `linear-gradient(120deg, ${creator.c1} 0%, ${creator.c2} 100%)` }}
+        />
+      </div>
+
       <div className="max-w-[1100px] mx-auto px-6 flex flex-col sm:flex-row sm:items-end gap-4 mt-6">
         <div className="flex items-center gap-5 -mt-16 sm:-mt-10">
           <div
@@ -51,9 +58,6 @@ export default function Profile() {
         </div>
         <div className="flex gap-2 sm:ml-auto">
           <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">
-        </div>
-        <div className="pb-1.5 flex gap-2">
-          <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">
             Follow
           </button>
           <button className="bg-red text-white px-5 py-2.5 rounded-pill text-sm font-bold">
@@ -62,7 +66,8 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 mt-6 border-b border-border flex gap-6">
+      {/* Tab nav, Ko-fi style */}
+      <div className="max-w-[1100px] mx-auto px-6 mt-10 border-b border-border flex gap-6">
         {tabs.map((t) => (
           <button
             key={t}
