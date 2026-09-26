@@ -41,8 +41,8 @@ export default function Profile() {
         />
       </div>
 
-      <div className="max-w-[1100px] mx-auto px-6 flex flex-col sm:flex-row sm:items-end gap-4 mt-6">
-        <div className="flex items-center gap-5 -mt-16 sm:-mt-10">
+      <div className="max-w-[1100px] mx-auto px-6 flex flex-col sm:flex-row sm:items-center gap-4 mt-5">
+        <div className="flex items-center gap-5">
           <div
             className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg flex items-center justify-center font-display font-bold text-3xl text-canvas flex-none"
             style={{ background: `linear-gradient(135deg, ${creator.c1}, ${creator.c2})` }}
