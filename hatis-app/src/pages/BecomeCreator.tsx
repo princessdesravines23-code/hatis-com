@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Nav from "../components/Nav";
 
 export default function BecomeCreator() {
-  const [form, setForm] = useState({ name: "", username: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [agreed, setAgreed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -26,8 +26,8 @@ export default function BecomeCreator() {
           <div className="bg-canvas-2 border border-border rounded-card p-6 text-center">
             <p className="text-[15px] font-semibold text-teal mb-1.5">Account created.</p>
             <p className="text-[13.5px] text-ink-soft">
-              Welcome to Hatis, {form.name || "there"} — your page will live at{" "}
-              <span className="font-semibold text-ink">hatis.app/{form.username || "yourname"}</span>.
+              Welcome to Hatis, {form.name || "there"} — we'll follow up by email to help you
+              pick your page name and finish setup.
             </p>
           </div>
         ) : (
@@ -45,19 +45,6 @@ export default function BecomeCreator() {
               required
               className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
             />
-
-            <div className="w-full flex bg-canvas-2 border border-border rounded-[12px] overflow-hidden focus-within:border-ink">
-              <span className="pl-4 py-3.5 text-[14px] text-ink-soft flex items-center">
-                hatis.app/
-              </span>
-              <input
-                value={form.username}
-                onChange={update("username")}
-                placeholder="yourname"
-                required
-                className="flex-1 bg-transparent outline-none text-[14px] py-3.5 pr-4"
-              />
-            </div>
 
             <input
               value={form.email}

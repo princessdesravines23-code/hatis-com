@@ -87,6 +87,25 @@ export const creators: Creator[] = [
       { name: "D. Charles", action: "sent support" },
     ],
   },
+  {
+    slug: "claudette-pierre",
+    name: "Claudette Pierre",
+    cats: ["Teacher"],
+    initials: "CP",
+    c1: "#14213D",
+    c2: "#F2B134",
+    supporters: 98,
+    bio: "Former public school teacher, now making free Kreyòl literacy and math lessons for kids who don't have a classroom right now. Filmed on my phone, edited between shifts.",
+    socials: ["YouTube", "Facebook"],
+    tiers: [
+      { name: "Klas Ouvè", price: "$3/mo", desc: "Early access to new lesson videos and printable worksheets." },
+      { name: "Sipò Lekòl", price: "$10/mo", desc: "Everything above, plus a monthly live Q&A for parents and students." },
+    ],
+    feed: [
+      { name: "Anonymous", action: "joined Klas Ouvè" },
+      { name: "F. Louis", action: "sent support" },
+    ],
+  },
 ];
 
-export const categories = ["Musician", "Comedian", "Artist", "Developer", "Streamer"];
+export const categories = ["Musician", "Comedian", "Artist", "Developer", "Streamer", "Teacher"];
