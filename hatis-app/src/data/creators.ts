@@ -5,7 +5,7 @@ import type { Creator } from "../types/creator";
 // table joined with `payment_methods`, `social_links`, and `membership_tiers`.
 export const creators: Creator[] = [
   {
-    slug: "djemy-laurent",
+    slug: "djemylaurent",
     name: "Djemy Laurent",
     cats: ["Musician"],
     initials: "DL",
@@ -27,7 +27,7 @@ export const creators: Creator[] = [
     ],
   },
   {
-    slug: "peterson-auguste",
+    slug: "petersonauguste",
     name: "Peterson Auguste",
     cats: ["Comedian", "Streamer"],
     initials: "PA",
@@ -49,7 +49,7 @@ export const creators: Creator[] = [
     ],
   },
   {
-    slug: "nadege-michel",
+    slug: "nadegemichel",
     name: "Nadège Michel",
     cats: ["Artist"],
     initials: "NM",
@@ -69,7 +69,7 @@ export const creators: Creator[] = [
     ],
   },
   {
-    slug: "ruben-etienne",
+    slug: "rubenetienne",
     name: "Ruben Etienne",
     cats: ["Developer"],
     initials: "RE",
@@ -88,7 +88,7 @@ export const creators: Creator[] = [
     ],
   },
   {
-    slug: "claudette-pierre",
+    slug: "claudettepierre",
     name: "Claudette Pierre",
     cats: ["Teacher"],
     initials: "CP",
@@ -98,14 +98,4 @@ export const creators: Creator[] = [
     bio: "Former public school teacher, now making free Kreyòl literacy and math lessons for kids who don't have a classroom right now. Filmed on my phone, edited between shifts.",
     socials: ["YouTube", "Facebook"],
     tiers: [
-      { name: "Klas Ouvè", price: "$3/mo", desc: "Early access to new lesson videos and printable worksheets." },
-      { name: "Sipò Lekòl", price: "$10/mo", desc: "Everything above, plus a monthly live Q&A for parents and students." },
-    ],
-    feed: [
-      { name: "Anonymous", action: "joined Klas Ouvè" },
-      { name: "F. Louis", action: "sent support" },
-    ],
-  },
-];
-
-export const categories = ["Musician", "Comedian", "Artist", "Developer", "Streamer", "Teacher"];
+      {
