@@ -100,7 +100,7 @@ export default function Profile() {
             </div>
             <div className="bg-canvas-2 border border-border rounded-card p-5">
               <h3 className="text-[13px] text-ink-soft font-semibold mb-2.5">
-                Support {creator.name.split(" ")[0]}
+                Show {creator.name.split(" ")[0]} some love
               </h3>
               <p className="text-[14.5px] text-ink-soft mb-4">
                 One-time or monthly — pick what fits.

@@ -89,4 +89,4 @@ export const creators: Creator[] = [
   },
 ];
 
-export const categories = ["All", "Musician", "Comedian", "Artist", "Developer", "Streamer"];
+export const categories = ["Musician", "Comedian", "Artist", "Developer", "Streamer"];

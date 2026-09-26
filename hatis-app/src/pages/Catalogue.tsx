@@ -5,11 +5,11 @@ import CreatorCard from "../components/CreatorCard";
 import HowItWorks from "../components/HowItWorks";
 import Faq from "../components/Faq";
 import ClaimFooter from "../components/ClaimFooter";
-import { creators } from "../data/creators";
+import { creators, categories } from "../data/creators";
 
 export default function Catalogue() {
-  const [active, setActive] = useState("All");
-  const list = active === "All" ? creators : creators.filter((c) => c.cats.includes(active));
+  const [active, setActive] = useState(categories[0]);
+  const list = creators.filter((c) => c.cats.includes(active));
 
   return (
     <>
@@ -19,7 +19,7 @@ export default function Catalogue() {
           Support the artists building Haitian culture.
         </h1>
         <p className="mt-3.5 text-[17px] text-ink-soft max-w-[42ch] leading-relaxed">
-          Musicians, comedians, developers, and creators — one place for the diaspora and the
+          Musicians, comedians, teachers, developers, and creators — one place for the diaspora and the
           island to show up for them directly.
         </p>
       </div>

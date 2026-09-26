@@ -105,6 +105,35 @@ export default function BecomeCreator() {
             >
               Create my account
             </button>
+
+            <div className="flex items-center gap-3 my-1">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[12.5px] text-ink-soft">or sign up with</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-[12px] border border-border bg-canvas-2 text-[14px] font-semibold"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M3 7l9 6 9-6" />
+              </svg>
+              Continue with Google
+            </button>
+
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-[12px] border border-border bg-canvas-2 text-[14px] font-semibold"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+              </svg>
+              Continue with Instagram
+            </button>
           </form>
         )}
 
