@@ -6,7 +6,7 @@ import { slugify, pickGradient, initialsFrom } from "../lib/slugify";
 
 export default function BecomeCreator() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", category: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -41,16 +41,12 @@ export default function BecomeCreator() {
     }
 
     const [c1, c2] = pickGradient();
-    const normalizedCategory = form.category
-      .trim()
-      .toLowerCase()
-      .replace(/\b\w/g, (ch) => ch.toUpperCase());
 
     const { error: profileError } = await supabase.from("creators").insert({
       user_id: userId,
       username: slugify(form.name),
       display_name: form.name,
-      category: normalizedCategory,
+      category: null,
       avatar_initials: initialsFrom(form.name),
       gradient_from: c1,
       gradient_to: c2,
@@ -85,14 +81,6 @@ export default function BecomeCreator() {
             value={form.name}
             onChange={update("name")}
             placeholder="Display name"
-            required
-            className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
-          />
-
-          <input
-            value={form.category}
-            onChange={update("category")}
-            placeholder="What do you make? (e.g. Musician, Dancer, Podcaster)"
             required
             className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
           />
