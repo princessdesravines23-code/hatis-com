@@ -1,29 +1,39 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Nav from "../components/Nav";
-import { useCreators } from "../hooks/useCreators";
+import { getCreatorBySlug } from "../data/creators";
+import type { Creator } from "../types/creator";
 
 const tabs = ["About", "Membership", "Feed"] as const;
 type Tab = (typeof tabs)[number];
 
 export default function Profile() {
   const { slug } = useParams();
-  const { creators, loading, error } = useCreators();
-  const creator = creators.find((c) => c.slug === slug);
+  const [creator, setCreator] = useState<Creator | null>(null);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("About");
+
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    getCreatorBySlug(slug)
+      .then(setCreator)
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   if (loading) {
     return (
       <>
         <Nav />
         <div className="max-w-[1100px] mx-auto px-6 py-20 text-center text-ink-soft">
-          <p>Loading…</p>
+          <p>Loading...</p>
         </div>
       </>
     );
   }
 
-  if (error || !creator) {
+  if (!creator) {
     return (
       <>
         <Nav />
@@ -55,12 +65,20 @@ export default function Profile() {
 
       <div className="max-w-[1100px] mx-auto px-6 flex flex-col sm:flex-row sm:items-center gap-4 mt-5">
         <div className="flex items-center gap-5">
-          <div
-            className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg flex items-center justify-center font-display font-bold text-3xl text-canvas flex-none"
-            style={{ background: `linear-gradient(135deg, ${creator.c1}, ${creator.c2})` }}
-          >
-            {creator.initials}
-          </div>
+          {creator.avatarUrl ? (
+            <img
+              src={creator.avatarUrl}
+              alt={creator.name}
+              className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg object-cover flex-none"
+            />
+          ) : (
+            <div
+              className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg flex items-center justify-center font-display font-bold text-3xl text-canvas flex-none"
+              style={{ background: `linear-gradient(135deg, ${creator.c1}, ${creator.c2})` }}
+            >
+              {creator.initials}
+            </div>
+          )}
           <div>
             <h2 className="text-2xl">{creator.name}</h2>
             <div className="text-[13px] text-ink-soft mt-1">
@@ -78,7 +96,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Tab nav, Ko-fi style */}
       <div className="max-w-[1100px] mx-auto px-6 mt-10 border-b border-border flex gap-6">
         {tabs.map((t) => (
           <button
@@ -110,6 +127,26 @@ export default function Profile() {
                 ))}
               </div>
             </div>
+
+            {creator.paymentMethods.length > 0 && (
+              <div className="bg-canvas-2 border border-border rounded-card p-5">
+                <h3 className="text-[13px] text-ink-soft font-semibold mb-2.5">
+                  Send support directly
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {creator.paymentMethods.map((pm) => (
+                    <div
+                      key={pm.id}
+                      className="flex items-center justify-between bg-canvas border border-border rounded-card px-4 py-2.5"
+                    >
+                      <span className="text-[13.5px] font-semibold">{pm.label}</span>
+                      <span className="text-[13px] text-ink-soft">{pm.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-canvas-2 border border-border rounded-card p-5">
               <h3 className="text-[13px] text-ink-soft font-semibold mb-2.5">
                 Show {creator.name.split(" ")[0]} some love

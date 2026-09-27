@@ -9,6 +9,14 @@ export interface Tier {
   desc: string;
 }
 
+export interface PaymentMethod {
+  id: string;
+  type: "moncash" | "natcash" | "paypal" | "zelle" | "payoneer" | "cashapp" | "bank";
+  label: string;
+  value: string;
+  isPrimary: boolean;
+}
+
 export interface Creator {
   slug: string;
   name: string;
@@ -21,4 +29,9 @@ export interface Creator {
   socials: string[];
   tiers: Tier[];
   feed: FeedItem[];
+  avatarUrl?: string;
+  paymentMethods: PaymentMethod[];
+  accountType: "creator" | "supporter";
+  earningGoals: string[];
+  interests: string[];
 }

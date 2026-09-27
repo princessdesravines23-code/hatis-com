@@ -5,6 +5,7 @@ import BecomeCreator from "./pages/BecomeCreator";
 import Login from "./pages/Login";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       {/* Keep this last — it catches any other path as a creator username. */}
       <Route path="/:slug" element={<Profile />} />
     </Routes>
