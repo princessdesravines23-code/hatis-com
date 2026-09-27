@@ -1,11 +1,12 @@
-import { categories } from "../data/creators";
-
-interface Props {
+﻿interface Props {
+  categories: string[];
   active: string;
   onChange: (cat: string) => void;
 }
 
-export default function CategoryChips({ active, onChange }: Props) {
+export default function CategoryChips({ categories, active, onChange }: Props) {
+  if (categories.length === 0) return null;
+
   return (
     <div className="max-w-[1100px] mx-auto px-6 mt-7 flex gap-2 overflow-x-auto no-scrollbar">
       {categories.map((cat) => (

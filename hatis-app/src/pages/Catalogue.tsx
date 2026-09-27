@@ -1,17 +1,23 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import Nav from "../components/Nav";
 import CategoryChips from "../components/CategoryChips";
 import CreatorCard from "../components/CreatorCard";
 import HowItWorks from "../components/HowItWorks";
 import Faq from "../components/Faq";
 import ClaimFooter from "../components/ClaimFooter";
-import { categories } from "../data/creators";
 import { useCreators } from "../hooks/useCreators";
 
 export default function Catalogue() {
-  const [active, setActive] = useState(categories[0]);
   const { creators, loading, error } = useCreators();
-  const list = creators.filter((c) => c.cats.includes(active));
+  const [active, setActive] = useState<string | null>(null);
+
+  const categories = Array.from(new Set(creators.flatMap((c) => c.cats))).sort();
+
+  useEffect(() => {
+    if (!active && categories.length > 0) setActive(categories[0]);
+  }, [categories, active]);
+
+  const list = active ? creators.filter((c) => c.cats.includes(active)) : [];
 
   return (
     <>
@@ -26,7 +32,9 @@ export default function Catalogue() {
         </p>
       </div>
 
-      <CategoryChips active={active} onChange={setActive} />
+      {active && (
+        <CategoryChips categories={categories} active={active} onChange={setActive} />
+      )}
 
       <div className="max-w-[1100px] mx-auto px-6 mt-8 mb-4">
         {loading && <p className="text-ink-soft text-[14px]">Loading creators…</p>}

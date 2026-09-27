@@ -3,11 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import { supabase } from "../lib/supabase";
 import { slugify, pickGradient, initialsFrom } from "../lib/slugify";
-import { categories } from "../data/creators";
 
 export default function BecomeCreator() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", category: categories[0] });
+  const [form, setForm] = useState({ name: "", email: "", password: "", category: "" });
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -42,12 +41,16 @@ export default function BecomeCreator() {
     }
 
     const [c1, c2] = pickGradient();
+    const normalizedCategory = form.category
+      .trim()
+      .toLowerCase()
+      .replace(/\b\w/g, (ch) => ch.toUpperCase());
 
     const { error: profileError } = await supabase.from("creators").insert({
       user_id: userId,
       username: slugify(form.name),
       display_name: form.name,
-      category: form.category,
+      category: normalizedCategory,
       avatar_initials: initialsFrom(form.name),
       gradient_from: c1,
       gradient_to: c2,
@@ -86,18 +89,13 @@ export default function BecomeCreator() {
             className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
           />
 
-          <select
+          <input
             value={form.category}
             onChange={update("category")}
+            placeholder="What do you make? (e.g. Musician, Dancer, Podcaster)"
             required
             className="w-full bg-canvas-2 border border-border rounded-[12px] px-4 py-3.5 text-[14px] outline-none focus:border-ink"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+          />
 
           <input
             value={form.email}
