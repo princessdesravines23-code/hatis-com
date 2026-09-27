@@ -1,17 +1,29 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Nav from "../components/Nav";
-import { creators } from "../data/creators";
+import { useCreators } from "../hooks/useCreators";
 
 const tabs = ["About", "Membership", "Feed"] as const;
 type Tab = (typeof tabs)[number];
 
 export default function Profile() {
   const { slug } = useParams();
+  const { creators, loading, error } = useCreators();
   const creator = creators.find((c) => c.slug === slug);
   const [tab, setTab] = useState<Tab>("About");
 
-  if (!creator) {
+  if (loading) {
+    return (
+      <>
+        <Nav />
+        <div className="max-w-[1100px] mx-auto px-6 py-20 text-center text-ink-soft">
+          <p>Loading…</p>
+        </div>
+      </>
+    );
+  }
+
+  if (error || !creator) {
     return (
       <>
         <Nav />
