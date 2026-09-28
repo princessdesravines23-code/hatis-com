@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { getCreators } from "../data/creators";
 import type { Creator } from "../types/creator";
 
 export function useCreators() {
@@ -11,38 +11,15 @@ export function useCreators() {
     let active = true;
 
     async function load() {
-      const { data, error } = await supabase
-        .from("creators")
-        .select("*, payment_methods(*), social_links(*), membership_tiers(*)");
-
-      if (!active) return;
-
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-        return;
+      try {
+        const data = await getCreators();
+        // Supporter accounts don't get a public catalogue card.
+        if (active) setCreators(data.filter((c) => c.accountType === "creator"));
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : "Something went wrong.");
+      } finally {
+        if (active) setLoading(false);
       }
-
-      const mapped: Creator[] = (data ?? []).map((row: any) => ({
-        slug: row.username,
-        name: row.display_name,
-        cats: [row.category],
-        initials: row.avatar_initials ?? row.display_name.slice(0, 2).toUpperCase(),
-        c1: row.gradient_from,
-        c2: row.gradient_to,
-        supporters: row.supporters_count ?? 0,
-        bio: row.bio ?? "",
-        socials: (row.social_links ?? []).map((s: any) => s.platform),
-        tiers: (row.membership_tiers ?? []).map((t: any) => ({
-          name: t.name,
-          price: t.price_label,
-          desc: t.description ?? "",
-        })),
-        feed: [],
-      }));
-
-      setCreators(mapped);
-      setLoading(false);
     }
 
     load();
