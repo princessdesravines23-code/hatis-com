@@ -10,15 +10,126 @@ import {
 } from "../data/creators";
 import type { Creator, PaymentMethod } from "../types/creator";
 
-const paymentTypes: { value: PaymentMethod["type"]; label: string }[] = [
-  { value: "moncash", label: "MonCash" },
-  { value: "natcash", label: "NatCash" },
-  { value: "paypal", label: "PayPal" },
-  { value: "zelle", label: "Zelle" },
-  { value: "payoneer", label: "Payoneer" },
-  { value: "cashapp", label: "Cash App" },
-  { value: "bank", label: "Bank transfer" },
+type PaymentType = PaymentMethod["type"];
+type FieldKind = "haitiPhone" | "paypal" | "email" | "usContact" | "cashtag" | "text";
+
+interface TypeConfig {
+  label: string;
+  kind: FieldKind;
+  placeholder: string;
+  help: string;
+}
+
+const typeConfigs: Record<PaymentType, TypeConfig> = {
+  moncash: {
+    label: "MonCash",
+    kind: "haitiPhone",
+    placeholder: "1234 5678",
+    help: "Your MonCash number. We add +509 for you.",
+  },
+  natcash: {
+    label: "NatCash",
+    kind: "haitiPhone",
+    placeholder: "1234 5678",
+    help: "Your NatCash number. We add +509 for you.",
+  },
+  paypal: {
+    label: "PayPal",
+    kind: "paypal",
+    placeholder: "you@email.com or paypal.me/yourname",
+    help: "Use your PayPal email or your paypal.me link.",
+  },
+  zelle: {
+    label: "Zelle",
+    kind: "usContact",
+    placeholder: "Email or US phone number",
+    help: "The email or US phone number linked to your Zelle.",
+  },
+  payoneer: {
+    label: "Payoneer",
+    kind: "email",
+    placeholder: "you@email.com",
+    help: "The email on your Payoneer account.",
+  },
+  cashapp: {
+    label: "Cash App",
+    kind: "cashtag",
+    placeholder: "yourcashtag",
+    help: "Your $cashtag. We add the $ for you.",
+  },
+  bank: {
+    label: "Bank transfer",
+    kind: "text",
+    placeholder: "Bank name, account number, account holder",
+    help: "Whatever supporters need to send a transfer to you.",
+  },
+};
+
+const typeOrder: PaymentType[] = [
+  "moncash",
+  "natcash",
+  "paypal",
+  "zelle",
+  "payoneer",
+  "cashapp",
+  "bank",
 ];
+
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const paypalMeRe = /^(https?:\/\/)?(www\.)?paypal\.me\/[A-Za-z0-9._-]+\/?$/i;
+
+function formatHaitiDigits(raw: string): string {
+  let d = raw.replace(/\D/g, "");
+  // If someone pastes a full number with the country code, drop the 509.
+  if (d.startsWith("509") && d.length > 8) d = d.slice(3);
+  d = d.slice(0, 8);
+  return d.length > 4 ? `${d.slice(0, 4)} ${d.slice(4)}` : d;
+}
+
+// Cleans what the person types, depending on the kind of field.
+function sanitize(kind: FieldKind, raw: string): string {
+  if (kind === "haitiPhone") return formatHaitiDigits(raw);
+  if (kind === "cashtag") return raw.replace(/[^A-Za-z0-9_]/g, "");
+  return raw;
+}
+
+// Checks the value and returns the final text to save, or an error message.
+function checkValue(kind: FieldKind, raw: string): { value: string } | { error: string } {
+  const v = raw.trim();
+  switch (kind) {
+    case "haitiPhone": {
+      const d = v.replace(/\D/g, "");
+      if (d.length !== 8) return { error: "Enter your 8-digit Haitian number." };
+      return { value: `+509 ${d.slice(0, 4)} ${d.slice(4)}` };
+    }
+    case "paypal": {
+      if (emailRe.test(v)) return { value: v };
+      if (paypalMeRe.test(v)) {
+        return { value: /^https?:\/\//i.test(v) ? v : `https://${v}` };
+      }
+      return { error: "Enter your PayPal email or a paypal.me link." };
+    }
+    case "email":
+      return emailRe.test(v) ? { value: v } : { error: "Enter a valid email address." };
+    case "usContact": {
+      if (emailRe.test(v)) return { value: v };
+      let d = v.replace(/\D/g, "");
+      if (d.length === 11 && d.startsWith("1")) d = d.slice(1);
+      if (d.length === 10) {
+        return { value: `+1 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}` };
+      }
+      return { error: "Enter an email or a 10-digit US phone number." };
+    }
+    case "cashtag":
+      return v.length > 0
+        ? { value: `$${v}` }
+        : { error: "Enter your Cash App $cashtag." };
+    case "text":
+      return v.length >= 6
+        ? { value: v }
+        : { error: "Add a few more details (bank, account number, name)." };
+  }
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,10 +138,12 @@ export default function Dashboard() {
   const [creator, setCreator] = useState<Creator | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const [type, setType] = useState<PaymentMethod["type"]>("moncash");
-  const [label, setLabel] = useState("");
+  const [type, setType] = useState<PaymentType>("moncash");
   const [value, setValue] = useState("");
+  const [fieldError, setFieldError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+
+  const config = typeConfigs[type];
 
   async function load() {
     const {
@@ -58,15 +171,37 @@ export default function Dashboard() {
     });
   }, []);
 
+  function handleTypeChange(next: PaymentType) {
+    setType(next);
+    setValue("");
+    setFieldError(null);
+  }
+
+  function handleValueChange(raw: string) {
+    setValue(sanitize(config.kind, raw));
+    setFieldError(null);
+  }
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!creatorId || !label.trim() || !value.trim()) return;
+    if (!creatorId) return;
+
+    const result = checkValue(config.kind, value);
+    if ("error" in result) {
+      setFieldError(result.error);
+      return;
+    }
+
     setAdding(true);
     setErrorMsg(null);
     try {
-      await addPaymentMethod(creatorId, { type, label: label.trim(), value: value.trim() });
-      setLabel("");
+      await addPaymentMethod(creatorId, {
+        type,
+        label: config.label,
+        value: result.value,
+      });
       setValue("");
+      setFieldError(null);
       await load();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Couldn't add that payment method.");
@@ -156,9 +291,9 @@ export default function Dashboard() {
                         </span>
                       )}
                     </div>
-                    <div className="text-[13px] text-ink-soft">{pm.value}</div>
+                    <div className="text-[13px] text-ink-soft break-all">{pm.value}</div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-none ml-3">
                     {!pm.isPrimary && (
                       <button
                         onClick={() => handleSetPrimary(pm.id)}
@@ -180,34 +315,55 @@ export default function Dashboard() {
           )}
 
           <form onSubmit={handleAdd} className="flex flex-col gap-2.5">
-            <div className="flex gap-2.5">
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value as PaymentMethod["type"])}
-                className="bg-canvas border border-border rounded-[10px] px-3 py-2.5 text-[13.5px] outline-none focus:border-ink"
-              >
-                {paymentTypes.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                placeholder="Label (e.g. MonCash)"
-                className="flex-1 bg-canvas border border-border rounded-[10px] px-3 py-2.5 text-[13.5px] outline-none focus:border-ink"
-              />
-            </div>
-            <input
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Handle, number, or email (e.g. +509 1234 5678 or you@email.com)"
+            <select
+              value={type}
+              onChange={(e) => handleTypeChange(e.target.value as PaymentType)}
               className="w-full bg-canvas border border-border rounded-[10px] px-3 py-2.5 text-[13.5px] outline-none focus:border-ink"
-            />
+            >
+              {typeOrder.map((t) => (
+                <option key={t} value={t}>
+                  {typeConfigs[t].label}
+                </option>
+              ))}
+            </select>
+
+            {config.kind === "text" ? (
+              <textarea
+                value={value}
+                onChange={(e) => handleValueChange(e.target.value)}
+                placeholder={config.placeholder}
+                rows={3}
+                className="w-full bg-canvas border border-border rounded-[10px] px-3 py-2.5 text-[13.5px] outline-none focus:border-ink resize-none"
+              />
+            ) : (
+              <div className="flex items-center bg-canvas border border-border rounded-[10px] px-3 focus-within:border-ink">
+                {config.kind === "haitiPhone" && (
+                  <span className="text-[13.5px] font-semibold text-ink-soft mr-2">+509</span>
+                )}
+                {config.kind === "cashtag" && (
+                  <span className="text-[13.5px] font-semibold text-ink-soft mr-1">$</span>
+                )}
+                <input
+                  value={value}
+                  onChange={(e) => handleValueChange(e.target.value)}
+                  placeholder={config.placeholder}
+                  inputMode={config.kind === "haitiPhone" ? "tel" : undefined}
+                  className="flex-1 bg-transparent py-2.5 text-[13.5px] outline-none"
+                />
+              </div>
+            )}
+
+            <p className="text-[12px] px-1 -mt-1">
+              {fieldError ? (
+                <span className="text-red font-semibold">{fieldError}</span>
+              ) : (
+                <span className="text-ink-soft">{config.help}</span>
+              )}
+            </p>
+
             <button
               type="submit"
-              disabled={adding || !label.trim() || !value.trim()}
+              disabled={adding || !value.trim()}
               className="w-full py-2.5 rounded-[10px] bg-ink text-canvas text-[13.5px] font-bold disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {adding ? "Adding..." : "Add payment method"}

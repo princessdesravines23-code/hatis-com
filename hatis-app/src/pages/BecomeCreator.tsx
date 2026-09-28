@@ -2,7 +2,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import { supabase } from "../lib/supabase";
-import { slugify, pickGradient, initialsFrom } from "../lib/slugify";
+import { slugify, initialsFrom } from "../lib/slugify";
+import { gradientFor } from "../lib/colors";
 import { isUsernameTaken, categories } from "../data/creators";
 
 type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
@@ -64,6 +65,9 @@ export default function BecomeCreator() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Same colors the profile page will get, so the preview matches the final result.
+  const [previewC1, previewC2] = gradientFor(username || "hatis");
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -209,7 +213,7 @@ export default function BecomeCreator() {
         avatarUrl = publicUrlData.publicUrl;
       }
 
-      const [c1, c2] = pickGradient();
+      const [c1, c2] = gradientFor(username);
       const primaryCategory = interests[0] ?? null;
       const finalBio = bio.trim() || generateDefaultBio(name, primaryCategory);
 
@@ -515,7 +519,7 @@ export default function BecomeCreator() {
                 style={{
                   background: avatarPreview
                     ? undefined
-                    : `linear-gradient(135deg, #14213D, #2A9D8F)`,
+                    : `linear-gradient(135deg, ${previewC1}, ${previewC2})`,
                 }}
               >
                 {avatarPreview ? (
