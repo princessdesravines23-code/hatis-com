@@ -186,7 +186,7 @@ export default function BecomeCreator() {
     if (stepKey === "earningGoals") return earningGoals.length > 0;
     if (stepKey === "username") return usernameStatus === "available";
     if (stepKey === "avatar") return true;
-    if (stepKey === "interests") return interests.length >= 3;
+    if (stepKey === "interests") return interests.length >= 1;
     if (stepKey === "about") return name.trim().length > 0;
     return false;
   }
@@ -548,11 +548,11 @@ export default function BecomeCreator() {
           </div>
         )}
 
-        {/* Interests (creators only, minimum 3) */}
+        {/* Interests (creators only, at least 1) */}
         {signedUp && stepKey === "interests" && (
           <div className="flex flex-col gap-3.5">
             <p className="text-[14.5px] text-ink-soft text-center mb-1">
-              Choose your interests — pick at least 3.
+              Choose your interests — pick at least 1, add more if you like.
             </p>
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
@@ -571,7 +571,9 @@ export default function BecomeCreator() {
               ))}
             </div>
             <p className="text-[12.5px] text-ink-soft">
-              {interests.length} of at least 3 selected
+              {interests.length === 0
+                ? "Pick at least 1. Your first pick is your main category."
+                : `${interests.length} selected. "${interests[0]}" is your main category.`}
             </p>
             <div className="flex gap-2.5 mt-2">
               <button

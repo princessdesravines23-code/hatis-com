@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Nav from "../components/Nav";
-import { getCreatorBySlug } from "../data/creators";
+import { getCreatorBySlug, getMyCreator } from "../data/creators";
 import type { Creator } from "../types/creator";
 
 const tabs = ["About", "Membership", "Feed"] as const;
@@ -11,6 +11,7 @@ export default function Profile() {
   const { slug } = useParams();
   const [creator, setCreator] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
   const [tab, setTab] = useState<Tab>("About");
 
   useEffect(() => {
@@ -20,6 +21,13 @@ export default function Profile() {
       .then(setCreator)
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  }, [slug]);
+
+  // Check whether the signed-in person is the owner of this page.
+  useEffect(() => {
+    getMyCreator()
+      .then((mine) => setIsOwner(!!mine && mine.creator.slug === slug))
+      .catch(() => setIsOwner(false));
   }, [slug]);
 
   if (loading) {
@@ -46,6 +54,9 @@ export default function Profile() {
       </>
     );
   }
+
+  const needsPaymentSetup =
+    isOwner && creator.accountType === "creator" && creator.paymentMethods.length === 0;
 
   return (
     <>
@@ -87,6 +98,14 @@ export default function Profile() {
           </div>
         </div>
         <div className="flex gap-2 sm:ml-auto">
+          {isOwner && (
+            <Link
+              to="/dashboard"
+              className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold"
+            >
+              Dashboard
+            </Link>
+          )}
           <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">
             Follow
           </button>
@@ -111,6 +130,21 @@ export default function Profile() {
       </div>
 
       <div className="max-w-[1100px] mx-auto px-6 mt-8 mb-20">
+        {needsPaymentSetup && (
+          <div className="bg-ink text-canvas rounded-card px-5 py-3.5 mb-5 flex flex-wrap items-center justify-between gap-3">
+            <span className="text-[13.5px]">
+              <span className="font-bold">Action required:</span> add a payment method so
+              supporters can send you money.
+            </span>
+            <Link
+              to="/dashboard"
+              className="text-[13px] font-bold bg-canvas text-ink px-4 py-1.5 rounded-pill"
+            >
+              Add payment method
+            </Link>
+          </div>
+        )}
+
         {tab === "About" && (
           <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1.4fr] gap-5">
             <div className="bg-canvas-2 border border-border rounded-card p-5">
