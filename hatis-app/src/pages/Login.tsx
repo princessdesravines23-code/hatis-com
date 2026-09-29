@@ -24,7 +24,7 @@ export default function Login() {
       return;
     }
 
-    navigate("/");
+      navigate("/dashboard");
   }
 
   async function handleOAuth(provider: "google" | "facebook") {
