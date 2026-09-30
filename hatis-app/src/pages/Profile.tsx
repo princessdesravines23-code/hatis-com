@@ -1,234 +1,367 @@
-﻿import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import Nav from "../components/Nav";
-import { getCreatorBySlug, getMyCreator } from "../data/creators";
-import type { Creator } from "../types/creator";
+﻿import { useState, useEffect } from 'react';
+import { Link, useRouter } from '@/lib/router';
+import { supabase } from '@/lib/supabase';
+import type { Creator, SocialLink, SupportMethod } from '@/types';
+import SupportModal from '@/components/SupportModal';
+import { CATEGORIES, PAYMENT_METHODS } from '@/lib/constants';
+import { formatClickCount } from '@/lib/utils';
+import {
+  ArrowLeft,
+  BadgeCheck,
+  MapPin,
+  Globe,
+  Heart,
+  ExternalLink,
+  Share2,
+  Copy,
+  Check,
+  Smartphone,
+  Wallet,
+  Building2,
+} from 'lucide-react';
 
-const tabs = ["About", "Membership", "Feed"] as const;
-type Tab = (typeof tabs)[number];
+interface Props {
+  slug: string;
+}
 
-export default function Profile() {
-  const { slug } = useParams();
+function getMethodIcon(type: string) {
+  if (type === 'MonCash' || type === 'NatCash') return Smartphone;
+  if (type === 'Bank transfer') return Building2;
+  return Wallet;
+}
+
+export default function CreatorProfilePage({ slug }: Props) {
+  const { navigate } = useRouter();
   const [creator, setCreator] = useState<Creator | null>(null);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [supportMethods, setSupportMethods] = useState<SupportMethod[]>([]);
+  const [clickCount, setClickCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isOwner, setIsOwner] = useState(false);
-  const [tab, setTab] = useState<Tab>("About");
+  const [showSupport, setShowSupport] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    getCreatorBySlug(slug)
-      .then(setCreator)
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    async function load() {
+      setLoading(true);
+      const { data: creatorData } = await supabase
+        .from('creators')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (!creatorData) {
+        setLoading(false);
+        return;
+      }
+
+      setCreator(creatorData);
+
+      const [socialRes, methodsRes, clicksRes] = await Promise.all([
+        supabase
+          .from('social_links')
+          .select('*')
+          .eq('creator_id', creatorData.id)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('support_methods')
+          .select('*')
+          .eq('creator_id', creatorData.id)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('support_clicks')
+          .select('id', { count: 'exact' })
+          .eq('creator_id', creatorData.id),
+      ]);
+
+      setSocialLinks(socialRes.data || []);
+      setSupportMethods(methodsRes.data || []);
+      setClickCount(clicksRes.count || 0);
+      setLoading(false);
+    }
+    load();
   }, [slug]);
 
-  // Check whether the signed-in person is the owner of this page.
-  useEffect(() => {
-    getMyCreator()
-      .then((mine) => setIsOwner(!!mine && mine.creator.slug === slug))
-      .catch(() => setIsOwner(false));
-  }, [slug]);
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      // ignore
+    }
+  };
 
   if (loading) {
     return (
-      <>
-        <Nav />
-        <div className="max-w-[1100px] mx-auto px-6 py-20 text-center text-ink-soft">
-          <p>Loading...</p>
+      <div className="min-h-screen bg-white">
+        <div className="h-64 bg-slate-100 animate-pulse" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="w-24 h-24 rounded-full bg-slate-100 animate-pulse -mt-12" />
+          <div className="mt-4 h-8 bg-slate-100 rounded w-1/3 animate-pulse" />
+          <div className="mt-2 h-4 bg-slate-100 rounded w-1/2 animate-pulse" />
+          <div className="mt-6 h-32 bg-slate-100 rounded-xl animate-pulse" />
         </div>
-      </>
+      </div>
     );
   }
 
   if (!creator) {
     return (
-      <>
-        <Nav />
-        <div className="max-w-[1100px] mx-auto px-6 py-20 text-center text-ink-soft">
-          <p>No creator found at this address.</p>
-          <Link to="/" className="text-red font-semibold">
-            Back to all creators
-          </Link>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Creator not found</h1>
+          <p className="text-slate-500 mb-6">
+            This creator's page doesn't exist or may have been removed.
+          </p>
+          <button
+            onClick={() => navigate('/discover')}
+            className="px-5 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors"
+          >
+            Browse creators
+          </button>
         </div>
-      </>
+      </div>
     );
   }
 
-  const needsPaymentSetup =
-    isOwner && creator.accountType === "creator" && creator.paymentMethods.length === 0;
+  const categoryInfo = CATEGORIES.find((c) => c.value === creator.category);
+  const CategoryIcon = categoryInfo?.icon;
 
   return (
-    <>
-      <Nav />
-      <div className="max-w-[1100px] mx-auto px-6 pt-4">
-        <Link to="/" className="text-sm font-semibold text-ink-soft">
-          &larr; All creators
-        </Link>
-      </div>
-
-      <div className="max-w-[1100px] mx-auto px-6 mt-4">
-        <div
-          className="h-44 rounded-[22px] relative overflow-hidden"
-          style={{ background: `linear-gradient(120deg, ${creator.c1} 0%, ${creator.c2} 100%)` }}
-        />
-      </div>
-
-      <div className="max-w-[1100px] mx-auto px-6 flex flex-col sm:flex-row sm:items-center gap-4 mt-5">
-        <div className="flex items-center gap-5">
-          {creator.avatarUrl ? (
-            <img
-              src={creator.avatarUrl}
-              alt={creator.name}
-              className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg object-cover flex-none"
-            />
-          ) : (
-            <div
-              className="w-[92px] h-[92px] rounded-[22px] border-[5px] border-canvas shadow-lg flex items-center justify-center font-display font-bold text-3xl text-canvas flex-none"
-              style={{ background: `linear-gradient(135deg, ${creator.c1}, ${creator.c2})` }}
-            >
-              {creator.initials}
-            </div>
-          )}
-          <div>
-            <h2 className="text-2xl">{creator.name}</h2>
-            <div className="text-[13px] text-ink-soft mt-1">
-              {creator.cats.join(" · ")} · {creator.supporters} supporters
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2 sm:ml-auto">
-          {isOwner && (
-            <Link
-              to="/dashboard"
-              className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold"
-            >
-              Dashboard
-            </Link>
-          )}
-          <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">
-            Follow
-          </button>
-          <button className="bg-red text-white px-5 py-2.5 rounded-pill text-sm font-bold">
-            Support
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-[1100px] mx-auto px-6 mt-10 border-b border-border flex gap-6">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`pb-3 text-[14.5px] font-semibold border-b-2 -mb-px transition-colors ${
-              tab === t ? "border-red text-ink" : "border-transparent text-ink-soft"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-
-      <div className="max-w-[1100px] mx-auto px-6 mt-8 mb-20">
-        {needsPaymentSetup && (
-          <div className="bg-ink text-canvas rounded-card px-5 py-3.5 mb-5 flex flex-wrap items-center justify-between gap-3">
-            <span className="text-[13.5px]">
-              <span className="font-bold">Action required:</span> add a payment method so
-              supporters can send you money.
-            </span>
-            <Link
-              to="/dashboard"
-              className="text-[13px] font-bold bg-canvas text-ink px-4 py-1.5 rounded-pill"
-            >
-              Add payment method
-            </Link>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Cover */}
+      <div className="relative h-56 sm:h-72 bg-slate-200 overflow-hidden">
+        {creator.cover_url && (
+          <img
+            src={creator.cover_url}
+            alt=""
+            className="w-full h-full object-cover"
+          />
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        <button
+          onClick={() => navigate('/discover')}
+          className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-2 bg-white/90 backdrop-blur-sm text-slate-700 text-sm font-medium rounded-lg hover:bg-white transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+        <button
+          onClick={handleShare}
+          className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-2 bg-white/90 backdrop-blur-sm text-slate-700 text-sm font-medium rounded-lg hover:bg-white transition-colors"
+        >
+          {copiedLink ? (
+            <>
+              <Check className="w-4 h-4 text-green-600" />
+              Link copied
+            </>
+          ) : (
+            <>
+              <Share2 className="w-4 h-4" />
+              Share
+            </>
+          )}
+        </button>
+      </div>
 
-        {tab === "About" && (
-          <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1.4fr] gap-5">
-            <div className="bg-canvas-2 border border-border rounded-card p-5">
-              <h3 className="text-[13px] text-ink-soft font-semibold mb-2.5">About</h3>
-              <p className="text-[14.5px] leading-relaxed">{creator.bio}</p>
-              <div className="flex gap-2.5 mt-3.5 flex-wrap">
-                {creator.socials.map((s) => (
-                  <span
-                    key={s}
-                    className="text-[12.5px] font-semibold px-3 py-1.5 rounded-pill bg-canvas border border-border"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {creator.paymentMethods.length > 0 && (
-              <div className="bg-canvas-2 border border-border rounded-card p-5">
-                <h3 className="text-[13px] text-ink-soft font-semibold mb-2.5">
-                  Send support directly
-                </h3>
-                <div className="flex flex-col gap-2">
-                  {creator.paymentMethods.map((pm) => (
-                    <div
-                      key={pm.id}
-                      className="flex items-center justify-between bg-canvas border border-border rounded-card px-4 py-2.5"
-                    >
-                      <span className="text-[13.5px] font-semibold">{pm.label}</span>
-                      <span className="text-[13px] text-ink-soft">{pm.value}</span>
-                    </div>
-                  ))}
-                </div>
+      {/* Profile header */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-12">
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-white bg-slate-100 overflow-hidden shadow-lg flex-shrink-0">
+            {creator.avatar_url ? (
+              <img
+                src={creator.avatar_url}
+                alt={creator.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-slate-400">
+                {creator.name.charAt(0)}
               </div>
             )}
+          </div>
 
-            <div className="bg-canvas-2 border border-border rounded-card p-5">
-              <h3 className="text-[13px] text-ink-soft font-semibold mb-2.5">
-                Show {creator.name.split(" ")[0]} some love
-              </h3>
-              <p className="text-[14.5px] text-ink-soft mb-4">
-                One-time or monthly — pick what fits.
-              </p>
-              <button
-                onClick={() => setTab("Membership")}
-                className="w-full py-2.5 rounded-[10px] bg-ink text-canvas text-[13.5px] font-bold"
-              >
-                See membership tiers
-              </button>
+          <div className="flex-1 sm:pb-2">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                {creator.name}
+              </h1>
+              {creator.verified && (
+                <BadgeCheck className="w-6 h-6 text-blue-600 flex-shrink-0" />
+              )}
+            </div>
+            {creator.tagline && (
+              <p className="text-slate-600 mt-1">{creator.tagline}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500">
+              {CategoryIcon && (
+                <span className="flex items-center gap-1.5">
+                  <CategoryIcon className="w-4 h-4" />
+                  {creator.category}
+                </span>
+              )}
+              {creator.location && (
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4" />
+                  {creator.location}
+                </span>
+              )}
+              {creator.language && (
+                <span className="flex items-center gap-1.5">
+                  <Globe className="w-4 h-4" />
+                  {creator.language}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="sm:pb-2">
+            <button
+              onClick={() => setShowSupport(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+            >
+              <Heart className="w-5 h-5" fill="currentColor" />
+              Support {creator.name.split(' ')[0]}
+            </button>
+          </div>
+        </div>
+
+        {/* Bio */}
+        {creator.bio && (
+          <div className="mt-8">
+            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+              {creator.bio}
+            </p>
+          </div>
+        )}
+
+        {/* Stats */}
+        <div className="mt-6 flex items-center gap-4 text-sm text-slate-500">
+          <span className="flex items-center gap-1.5">
+            <Heart className="w-4 h-4 text-rose-400" />
+            {formatClickCount(clickCount)}
+          </span>
+        </div>
+
+        {/* Social links */}
+        {socialLinks.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3">
+              Follow their work
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all"
+                >
+                  {link.label || link.platform}
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                </a>
+              ))}
             </div>
           </div>
         )}
 
-        {tab === "Membership" && (
-          <div className="max-w-[560px] mx-auto">
-            {creator.tiers.map((t) => (
-              <div key={t.name} className="border border-border rounded-2xl p-4 mb-3 bg-canvas-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-[15px]">{t.name}</span>
-                  <span className="font-bold text-[15px] text-red">{t.price}</span>
-                </div>
-                <p className="text-[13.5px] text-ink-soft mt-1.5 leading-relaxed">{t.desc}</p>
-                <button className="mt-3 w-full py-2.5 rounded-[10px] bg-ink text-canvas text-[13.5px] font-bold">
-                  Join {t.name}
-                </button>
-              </div>
-            ))}
+        {/* Support methods preview */}
+        {supportMethods.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3">
+              Support {creator.name.split(' ')[0]} with
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {supportMethods.map((method) => {
+                const info = PAYMENT_METHODS[method.method_type];
+                const Icon = getMethodIcon(method.method_type);
+                return (
+                  <button
+                    key={method.id}
+                    onClick={() => setShowSupport(true)}
+                    className="flex items-center gap-3 p-3.5 bg-white border border-slate-200 rounded-xl hover:border-rose-200 hover:bg-rose-50/30 transition-all text-left group"
+                  >
+                    <span
+                      className={`w-10 h-10 rounded-lg ${info?.bgColor || 'bg-slate-50'} flex items-center justify-center flex-shrink-0`}
+                    >
+                      <Icon className={`w-5 h-5 ${info?.color || 'text-slate-600'}`} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-900 text-sm">
+                        {info?.label || method.method_type}
+                      </p>
+                      <p className="text-xs text-slate-400 truncate">
+                        {method.display_value}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {tab === "Feed" && (
-          <div className="max-w-[560px] mx-auto flex flex-col gap-2.5">
-            {creator.feed.map((f, i) => (
-              <div
-                key={i}
-                className="border border-border rounded-card bg-canvas-2 px-4 py-3 text-[14px]"
-              >
-                <span className="font-semibold">{f.name}</span>{" "}
-                <span className="text-ink-soft">{f.action}</span>
-              </div>
-            ))}
+        {/* Profile completeness (for the creator themselves) */}
+        {creator.profile_complete < 100 && (
+          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <p className="text-sm text-amber-800">
+              This profile is {creator.profile_complete}% complete.
+            </p>
           </div>
         )}
+
+        {/* Share section */}
+        <div className="mt-8 p-5 bg-slate-50 rounded-2xl border border-slate-200">
+          <h3 className="font-semibold text-slate-900 mb-1">Share this page</h3>
+          <p className="text-sm text-slate-500 mb-4">
+            Share {creator.name}'s Hatis page with your community.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleShare}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all"
+            >
+              {copiedLink ? (
+                <>
+                  <Check className="w-4 h-4 text-green-600" />
+                  Link copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  Copy profile link
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Report */}
+        <div className="mt-6 pb-12">
+          <p className="text-xs text-slate-400">
+            Is this your page?{' '}
+            <Link to="/claim" className="text-rose-600 hover:underline">
+              Claim it here
+            </Link>
+            . Found a broken link or impersonation?{' '}
+            <span className="text-rose-600 cursor-pointer hover:underline">
+              Report it
+            </span>
+            .
+          </p>
+        </div>
       </div>
-    </>
+
+      {/* Support modal */}
+      {showSupport && (
+        <SupportModal
+          creator={creator}
+          methods={supportMethods}
+          onClose={() => setShowSupport(false)}
+        />
+      )}
+    </div>
   );
 }
