@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Nav from "../components/Nav";
+import SupportModal from "../components/SupportModal";
 import { getCreatorBySlug, getMyCreator } from "../data/creators";
 import type { Creator } from "../types/creator";
 
@@ -13,6 +14,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [tab, setTab] = useState<Tab>("About");
+  const [showSupport, setShowSupport] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -23,7 +25,6 @@ export default function Profile() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  // Check whether the signed-in person is the owner of this page.
   useEffect(() => {
     getMyCreator()
       .then((mine) => setIsOwner(!!mine && mine.creator.slug === slug))
@@ -109,7 +110,11 @@ export default function Profile() {
           <button className="border border-border px-4.5 py-2.5 rounded-pill text-sm font-semibold">
             Follow
           </button>
-          <button className="bg-red text-white px-5 py-2.5 rounded-pill text-sm font-bold">
+          <button
+            onClick={() => setShowSupport(true)}
+            disabled={creator.paymentMethods.length === 0}
+            className="bg-red text-white px-5 py-2.5 rounded-pill text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             Support
           </button>
         </div>
@@ -229,6 +234,14 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {showSupport && (
+        <SupportModal
+          creatorName={creator.name}
+          paymentMethods={creator.paymentMethods}
+          onClose={() => setShowSupport(false)}
+        />
+      )}
     </>
   );
 }
