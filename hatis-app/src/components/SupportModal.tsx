@@ -7,36 +7,45 @@ interface Props {
   onClose: () => void;
 }
 
-const typeMeta: Record
-  PaymentMethod["type"],
-  { blurb: string; action: (value: string) => { label: string; href?: string } }
-> = {
+type PMType = PaymentMethod["type"];
+
+interface ActionResult {
+  label: string;
+  href?: string;
+}
+
+interface TypeMeta {
+  blurb: string;
+  action: (value: string) => ActionResult;
+}
+
+const typeMeta: Record<PMType, TypeMeta> = {
   moncash: {
     blurb: "Send via MonCash",
-    action: (v) => ({ label: `Copy ${v}` }),
+    action: (v) => ({ label: "Copy " + v }),
   },
   natcash: {
     blurb: "Send via NatCash",
-    action: (v) => ({ label: `Copy ${v}` }),
+    action: (v) => ({ label: "Copy " + v }),
   },
   paypal: {
     blurb: "Pay online with PayPal",
     action: (v) =>
       v.startsWith("http")
         ? { label: "Open PayPal", href: v }
-        : { label: `Copy ${v}` },
+        : { label: "Copy " + v },
   },
   cashapp: {
     blurb: "Send money with Cash App",
-    action: (v) => ({ label: `Open Cash App`, href: `https://cash.app/${v}` }),
+    action: (v) => ({ label: "Open Cash App", href: "https://cash.app/" + v }),
   },
   zelle: {
     blurb: "Send through your bank app",
-    action: (v) => ({ label: `Copy ${v}` }),
+    action: (v) => ({ label: "Copy " + v }),
   },
   payoneer: {
     blurb: "Pay via Payoneer",
-    action: (v) => ({ label: `Copy ${v}` }),
+    action: (v) => ({ label: "Copy " + v }),
   },
   bank: {
     blurb: "Send a bank transfer",
@@ -61,12 +70,12 @@ export default function SupportModal({ creatorName, paymentMethods, onClose }: P
   }, [onClose]);
 
   async function handleAction(pm: PaymentMethod) {
-    const { label, href } = typeMeta[pm.type].action(pm.value);
-    if (href) {
-      window.open(href, "_blank", "noopener,noreferrer");
+    const result = typeMeta[pm.type].action(pm.value);
+    if (result.href) {
+      window.open(result.href, "_blank", "noopener,noreferrer");
       return;
     }
-    if (label.startsWith("Copy")) {
+    if (result.label.indexOf("Copy") === 0) {
       try {
         await navigator.clipboard.writeText(pm.value);
       } catch {
