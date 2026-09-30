@@ -29,7 +29,7 @@ export default function CreatorCard({ creator, newTab }: Props) {
         </div>
       )}
       <div className="text-base font-bold mb-0.5">{creator.name}</div>
-      <div className="text-[12.5px] text-ink-soft font-medium">{creator.cats.join(" · ")}</div>
+            <div className="text-[12.5px] text-ink-soft font-medium">{creator.cats.join(" · ")}</div>
       <div className="mt-3 text-[12.5px] text-ink-soft flex items-center gap-[5px]">
         <span className="w-1.5 h-1.5 rounded-full bg-red" />
         {creator.supporters} supporters

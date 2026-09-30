@@ -7,147 +7,189 @@ interface Props {
   onClose: () => void;
 }
 
-type PMType = PaymentMethod["type"];
-
-interface ActionResult {
-  label: string;
-  href?: string;
+interface MethodInfo {
+  description: string;
+  howTo: (name: string) => string;
 }
 
-interface TypeMeta {
-  blurb: string;
-  action: (value: string) => ActionResult;
-}
-
-const typeMeta: Record<PMType, TypeMeta> = {
+const methodInfo: Record<PaymentMethod["type"], MethodInfo> = {
   moncash: {
-    blurb: "Send via MonCash",
-    action: (v) => ({ label: "Copy " + v }),
+    description: "Mobile payment popular in Haiti",
+    howTo: (name) => `Open your MonCash app, enter the number above, and send your support to ${name}.`,
   },
   natcash: {
-    blurb: "Send via NatCash",
-    action: (v) => ({ label: "Copy " + v }),
+    description: "National Cash mobile transfer",
+    howTo: (name) => `Open your NatCash app, enter the number above, and send your support to ${name}.`,
   },
   paypal: {
-    blurb: "Pay online with PayPal",
-    action: (v) =>
-      v.startsWith("http")
-        ? { label: "Open PayPal", href: v }
-        : { label: "Copy " + v },
-  },
-  cashapp: {
-    blurb: "Send money with Cash App",
-    action: (v) => ({ label: "Open Cash App", href: "https://cash.app/" + v }),
+    description: "Pay online with PayPal",
+    howTo: () => "Opens PayPal so you can send your support directly.",
   },
   zelle: {
-    blurb: "Send through your bank app",
-    action: (v) => ({ label: "Copy " + v }),
+    description: "Send through your bank app",
+    howTo: () => "Zelle is sent through your bank's mobile app. Open your banking app, find Zelle, and send to the email or phone above.",
   },
   payoneer: {
-    blurb: "Pay via Payoneer",
-    action: (v) => ({ label: "Copy " + v }),
+    description: "International payment platform",
+    howTo: () => "Open Payoneer and send your support to the email above.",
+  },
+  cashapp: {
+    description: "Send money with Cash App",
+    howTo: () => "Open Cash App and send your support to the $cashtag above.",
   },
   bank: {
-    blurb: "Send a bank transfer",
-    action: () => ({ label: "View details" }),
+    description: "Direct bank transfer",
+    howTo: () => "Use these details in your bank's transfer or wire feature.",
   },
 };
 
+function externalLink(pm: PaymentMethod): string | null {
+  return /^https?:\/\//i.test(pm.value) ? pm.value : null;
+}
+
 export default function SupportModal({ creatorName, paymentMethods, onClose }: Props) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<PaymentMethod | null>(null);
+  const [copied, setCopied] = useState(false);
+  const firstName = creatorName.split(" ")[0];
 
   useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+    function onEsc(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
-    document.addEventListener("keydown", onKey);
+    document.addEventListener("keydown", onEsc);
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("keydown", onEsc);
       document.body.style.overflow = "";
     };
   }, [onClose]);
 
-  async function handleAction(pm: PaymentMethod) {
-    const result = typeMeta[pm.type].action(pm.value);
-    if (result.href) {
-      window.open(result.href, "_blank", "noopener,noreferrer");
-      return;
+  async function handleCopy(value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Clipboard can fail on some browsers/permissions — the visible text is the fallback.
     }
-    if (result.label.indexOf("Copy") === 0) {
-      try {
-        await navigator.clipboard.writeText(pm.value);
-      } catch {
-        // Fall through - the value is still shown on screen.
-      }
-      setCopiedId(pm.id);
-      setTimeout(() => setCopiedId((c) => (c === pm.id ? null : c)), 2000);
-      return;
-    }
-    setExpandedId((id) => (id === pm.id ? null : pm.id));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   }
-
-  const firstName = creatorName.split(" ")[0];
 
   return (
     <div
-      className="fixed inset-0 bg-ink/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
+      <div className="absolute inset-0 bg-ink/60" />
+
       <div
-        className="bg-canvas rounded-card max-w-[420px] w-full p-6"
+        className="relative w-full sm:max-w-[420px] bg-canvas rounded-t-3xl sm:rounded-card shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between mb-1">
-          <h2 className="text-[18px] font-bold flex items-center gap-2">
-            <span className="text-red">&hearts;</span> Show love to {firstName}
-          </h2>
+        <div className="sticky top-0 bg-canvas px-6 pt-6 pb-4 border-b border-border z-10">
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-ink-soft hover:text-ink text-xl leading-none"
+            className="absolute top-4 right-4 p-1.5 text-ink-soft hover:text-ink"
           >
-            &times;
+            ✕
           </button>
+          <h2 className="text-[17px] font-bold flex items-center gap-2">
+            <span className="text-red">♥</span>
+            {selected ? "Send your support" : `Show ${firstName} some love`}
+          </h2>
+          <p className="text-[13px] text-ink-soft mt-1">
+            {selected ? `You're supporting ${creatorName}` : "Choose the way that works best for you."}
+          </p>
         </div>
-        <p className="text-[13.5px] text-ink-soft mb-5">Choose the way that works best for you.</p>
 
-        <div className="flex flex-col gap-2.5">
-          {paymentMethods.map((pm) => {
-            const meta = typeMeta[pm.type];
-            const isExpanded = expandedId === pm.id;
-            const isCopied = copiedId === pm.id;
-            return (
-              <div key={pm.id}>
-                <button
-                  onClick={() => handleAction(pm)}
-                  className="w-full flex items-center justify-between border border-border rounded-card px-4 py-3.5 hover:border-ink transition-colors text-left"
-                >
-                  <div>
-                    <div className="text-[14.5px] font-semibold">{pm.label}</div>
-                    <div className="text-[12.5px] text-ink-soft">
-                      {isCopied ? "Copied!" : meta.blurb}
-                    </div>
-                  </div>
-                  <span className="text-ink-soft text-lg">
-                    {pm.type === "bank" ? (isExpanded ? "-" : "+") : "->"}
-                  </span>
-                </button>
-                {isExpanded && (
-                  <div className="mt-1.5 mb-1 px-4 py-3 bg-canvas-2 rounded-card text-[13px] text-ink-soft whitespace-pre-wrap">
-                    {pm.value}
-                  </div>
-                )}
+        <div className="p-6">
+          {!selected ? (
+            <>
+              {paymentMethods.length === 0 ? (
+                <p className="text-[13.5px] text-ink-soft text-center py-8">
+                  {creatorName} hasn't added a payment method yet.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {paymentMethods.map((pm) => (
+                    <button
+                      key={pm.id}
+                      onClick={() => setSelected(pm)}
+                      className="w-full flex items-center justify-between gap-3 p-4 rounded-card border border-border hover:border-ink text-left"
+                    >
+                      <div>
+                        <p className="text-[14.5px] font-semibold">{pm.label}</p>
+                        <p className="text-[12.5px] text-ink-soft">{methodInfo[pm.type]?.description}</p>
+                      </div>
+                      <span className="text-ink-soft">→</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 p-3 bg-canvas-2 rounded-card">
+                <p className="text-[12px] text-ink-soft text-center leading-relaxed">
+                  Hatis never handles your payment. You support the creator directly
+                  through their own account.
+                </p>
               </div>
-            );
-          })}
-        </div>
+            </>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <button
+                onClick={() => setSelected(null)}
+                className="text-[13px] text-ink-soft hover:text-ink text-left"
+              >
+                ← All methods
+              </button>
 
-        <p className="mt-5 text-[12px] text-ink-soft text-center leading-relaxed">
-          Hatis never handles your payment. You support the creator directly through their own
-          account.
-        </p>
+              <div className="p-4 rounded-card bg-canvas-2">
+                <p className="font-semibold text-[15px]">{selected.label}</p>
+                <p className="text-[13px] text-ink-soft">{methodInfo[selected.type]?.description}</p>
+              </div>
+
+              <div className="p-4 border border-border rounded-card">
+                <p className="text-[11px] font-semibold text-ink-soft uppercase tracking-wide mb-2">
+                  {selected.type === "zelle" ? "Email or phone" : "Details"}
+                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <code className="text-[16px] font-semibold break-all">{selected.value}</code>
+                  <button
+                    onClick={() => handleCopy(selected.value)}
+                    className="flex-none px-3.5 py-2 bg-ink text-canvas text-[13px] font-semibold rounded-[10px]"
+                  >
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+
+              {externalLink(selected) ? (
+                <a
+                  href={externalLink(selected)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 bg-ink text-canvas font-semibold rounded-card text-center"
+                >
+                  Open link
+                </a>
+              ) : (
+                <div className="p-3 bg-canvas-2 rounded-card">
+                  <p className="text-[13px] text-ink-soft leading-relaxed">
+                    {methodInfo[selected.type]?.howTo(firstName)}
+                  </p>
+                </div>
+              )}
+
+              {copied && (
+                <div className="p-3 bg-teal/10 rounded-card">
+                  <p className="text-[13px] text-teal font-medium">
+                    Copied. Open your app, send your support, then come back to discover another creator.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
