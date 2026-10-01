@@ -18,6 +18,7 @@ export interface PaymentMethod {
 }
 
 export interface Creator {
+  id: string;
   slug: string;
   name: string;
   cats: string[];
@@ -30,6 +31,11 @@ export interface Creator {
   tiers: Tier[];
   feed: FeedItem[];
   avatarUrl?: string;
+  coverUrl?: string;
+  tagline?: string;
+  language?: string;
+  verified: boolean;
+  supportClickCount: number;
   paymentMethods: PaymentMethod[];
   accountType: "creator" | "supporter";
   earningGoals: string[];

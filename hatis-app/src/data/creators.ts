@@ -4,11 +4,17 @@ import type { Creator, PaymentMethod } from "../types/creator";
 export const categories = ["Musician", "Comedian", "Artist", "Developer", "Streamer", "Teacher"];
 
 interface CreatorRow {
+  id: string;
   username: string;
   display_name: string;
   bio: string | null;
   avatar_initials: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
+  tagline: string | null;
+  language: string | null;
+  verified: boolean;
+  support_click_count: number;
   gradient_from: string | null;
   gradient_to: string | null;
   category: string | null;
@@ -27,7 +33,8 @@ interface CreatorRow {
 }
 
 const SELECT = `
-  username, display_name, bio, avatar_initials, avatar_url, gradient_from, gradient_to, category,
+  id, username, display_name, bio, avatar_initials, avatar_url, cover_url, tagline, language,
+  verified, support_click_count, gradient_from, gradient_to, category,
   account_type, earning_goals, interests,
   social_links ( platform ),
   membership_tiers ( name, price_label, description ),
@@ -36,6 +43,7 @@ const SELECT = `
 
 function mapRow(row: CreatorRow): Creator {
   return {
+    id: row.id,
     slug: row.username,
     name: row.display_name,
     cats: row.category ? [row.category] : [],
@@ -52,6 +60,11 @@ function mapRow(row: CreatorRow): Creator {
     })),
     feed: [],
     avatarUrl: row.avatar_url ?? undefined,
+    coverUrl: row.cover_url ?? undefined,
+    tagline: row.tagline ?? undefined,
+    language: row.language ?? undefined,
+    verified: row.verified,
+    supportClickCount: row.support_click_count,
     paymentMethods: row.payment_methods.map((p) => ({
       id: p.id,
       type: p.type as PaymentMethod["type"],
@@ -99,14 +112,14 @@ export async function getMyCreator(): Promise<{ id: string; creator: Creator } |
 
   const { data, error } = await supabase
     .from("creators")
-    .select(`id, ${SELECT}`)
+    .select(SELECT)
     .eq("user_id", session.user.id)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
 
-  const { id, ...rest } = data as unknown as CreatorRow & { id: string };
-  return { id, creator: mapRow(rest as CreatorRow) };
+  const row = data as unknown as CreatorRow;
+  return { id: row.id, creator: mapRow(row) };
 }
 
 export async function addPaymentMethod(
@@ -140,4 +153,11 @@ export async function setPrimaryPaymentMethod(creatorId: string, id: string): Pr
     .update({ is_primary: true })
     .eq("id", id);
   if (setError) throw setError;
+}
+
+export async function recordSupportClick(creatorId: string): Promise<void> {
+  const { error } = await supabase.rpc("increment_support_clicks", {
+    creator_id_input: creatorId,
+  });
+  if (error) throw error;
 }

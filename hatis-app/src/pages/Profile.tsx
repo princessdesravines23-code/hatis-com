@@ -235,13 +235,14 @@ export default function Profile() {
         )}
       </div>
 
-      {showSupport && (
-        <SupportModal
-          creatorName={creator.name}
-          paymentMethods={creator.paymentMethods}
-          onClose={() => setShowSupport(false)}
-        />
-      )}
+{showSupport && (
+  <SupportModal
+    creatorId={creator.id}
+    creatorName={creator.name}
+    paymentMethods={creator.paymentMethods}
+    onClose={() => setShowSupport(false)}
+  />
+)}
     </>
   );
 }
